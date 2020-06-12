@@ -15,6 +15,7 @@ func ParseFrontMatter(input io.Reader) (front map[string]interface{}, body strin
 	var buf = make([]byte, 0, 100)
 	var delim = []byte{'-', '-', '-'}
 	isBody := false
+	isFirst := true
 	front = make(map[string]interface{})
 ROOT:
 	for {
@@ -27,7 +28,14 @@ ROOT:
 			} else if err != nil {
 				return nil, "", err
 			}
-			if !isBody {
+			if isFirst {
+				if !bytes.Equal(line, delim) {
+					isBody = true
+					buf = append(buf, line...)
+					buf = append(buf, '\n')
+				}
+				isFirst = false
+			} else if !isBody {
 				if bytes.Equal(line, delim) {
 					// End of frontmatter
 					isBody = true
